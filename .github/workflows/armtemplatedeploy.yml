@@ -6,6 +6,11 @@ on:
       - main
   workflow_dispatch:
 
+env:
+  resource_group_name: rg-githubactions
+  location: "Australia East"
+  subscriptionId: 26f5eba3-35ac-4667-9a00-d1adf90937ae
+
 jobs:
   armDeploy:
     runs-on: ubuntu-latest
@@ -18,37 +23,37 @@ jobs:
         with: 
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
- #     - name: Deploy Resource Group rg-githubactions with AZ CLI
+ #     - name: Deploy Resource Group ${{ env.resource_group_name }} with AZ CLI
  #       uses: Azure/cli@v1.0.7
  #       with:
  #         inlinescript: |
- #           az deployment sub create --location "Australia East" --template-file ./arm-templates/resourcegroup.json
+ #           az deployment sub create --location ${{ env.location }} --template-file ./arm-templates/resourcegroup.json
 
-      - name: Deploy Resource Group rg-githubactions with Azure Resource Manager (ARM) Template
+      - name: Deploy Resource Group ${{ env.resource_group_name }} with Azure Resource Manager (ARM) Template
         uses: Azure/arm-deploy@v1
         with:
           scope: subscription
-          subscriptionId: 26f5eba3-35ac-4667-9a00-d1adf90937ae
-          region: Australia East
+          subscriptionId: ${{ env.subscriptionId }}
+          region: ${{ env.location }}
           template: ./arm-templates/resourcegroup.json
           parameters:
-            location="Australia East"
-            resourceGroupName=rg-githubactions
-          deploymentName: rg-githubactions
+            location=${{ env.location }}
+            resourceGroupName=${{ env.resource_group_name }}
+          deploymentName: ${{ env.resource_group_name }}
 
       - name: Deploy Storage Account
         uses: Azure/arm-deploy@v1
         id: storageAccountDeploy
         with:
           scope: resourcegroup
-          resourceGroupName: rg-githubactions
-          subscriptionId: 26f5eba3-35ac-4667-9a00-d1adf90937ae
+          resourceGroupName: ${{ env.resource_group_name }}
+          subscriptionId: ${{ env.subscriptionId }}
           template: ./arm-templates/storageaccount.json
           parameters: 
             #./arm-templates/storageaccount.parameters.json
             sku=Standard_LRS
             storageAccountName=globostg002cwiara
-            location="Australia East"
+            location=${{ env.location }}
           deploymentMode: incremental
 
       #- run: echo ${{ steps.storageAccountDeploy.outputs.BlobUri }}
@@ -57,10 +62,11 @@ jobs:
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
-          resourceGroupName: rg-githubactions
-          subscriptionId: 26f5eba3-35ac-4667-9a00-d1adf90937ae
+          resourceGroupName: ${{ env.resource_group_name }}
+          subscriptionId: ${{ env.subscriptionId }}
           template: ./arm-templates/virtualmachine.json
           parameters: 
             #adminPassword="My$ecureP@ssword!"
             adminPassword=${{ secrets.UBUNTU_ADMIN_PASSWORD }}
+            location=${{ env.location }}
           deploymentMode: incremental
