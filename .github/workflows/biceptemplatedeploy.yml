@@ -25,11 +25,13 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Install Bicep
+      - name: Install Bicep CLI
         run: |
-          az upgrade --yes
-          az extension add --name bicep
+          az bicep install
 
+      - name: Install Bicep extension
+        run: |
+          az extension add --name bicep
 
       - name: Deploy Resource Group
         uses: Azure/cli@1.0.4
